@@ -17,7 +17,7 @@ In this repository you can find:
 - `drivers`: the drivers for each peripheral component required for the operation of SolPol
 - `manual`: a complete guide for the instrument set-up, initialization and measurement sequence
 
-## Acknowlegements
+## Acknowledgements
 This research was supported by D-TECT (Grant Agreement 725698) funded by the European Research Council (ERC) under the European Union's Horizon 2020 research and innovation programme.
 
 ## Blame
