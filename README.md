@@ -26,6 +26,7 @@ This research was supported by D-TECT (Grant Agreement 725698) funded by the Eur
 - **Research consultant**: Alexandra Tsekeri <atsekeri@noa.gr>
 - **Instrument operator**: Panagiotis-Ioannis Raptis <piraptis@meteo.noa.gr>
 - **Instrument PI**: Vassilis Amiridis <vamoir@noa.gr>
+- **Consulting**: Thanasis Georgiou <ageorgiou@noa.gr> @thgeorgiou
 
 
 Period of operation: extensive measurements and tests between August 2018 to November 2022.
