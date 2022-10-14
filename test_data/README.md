@@ -18,12 +18,15 @@ classDiagram
   Time ..> Duration
 ```
 
-The raw data header is:
+In (`test_data\`) there is a two-hour measurement test file as *poliris55_02092020_0721_antik_twohour.txt*.
+
+## Header
+The raw data `header` is:
 
 SOLAR POLARIMETER
 
 1. `Polarimeter Position [deg]`:
-instrument rotational position at 0 and 45 degrees from reference
+Instrument rotational position at 0 and 45 degrees from reference
 
 2. `Rotator Position [deg]`:
 Polarizer position in sets of [0, 40, 130, 220, 310] in degrees
@@ -44,7 +47,7 @@ Neutral density 0.3 filter (pre-defined)
 Measurement starting time in HH:MM:SS (UTC)
 
 8. `Bias Voltage on Diode`
-Should be zero if instrument wotking properly, forward bias
+Should be zero if instrument working properly, forward bias
 
 9. `LabJack, mean DC (AIN0)`:
 DC output voltage from the DAQ in Volts
@@ -57,3 +60,11 @@ RMS Voltage output from channel 1 of the Lock-in amplifier, signal phase on reso
 
 12. `Lock-in, 2w`:
 RMS Voltage output from channel 2 of the Lock-in amplifier, signal phase on twice the resonant frequency (2ω) in degrees
+
+## Data validity
+
+! Data file to be valid needs to contain **5** sets of measurements [1-12 above] for each `Rotator Position [deg]` per `Polarimeter Position [deg]`. <br />
+
+
+! Every valid file stops at a `Polarimeter Position [deg]` == 45 degs.
+
