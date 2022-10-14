@@ -18,7 +18,7 @@ classDiagram
   Time ..> Duration
 ```
 
-In (`test_data\`) there is a two-hour measurement test file as *poliris55_02092020_0721_antik_twohour.txt*.
+In (`test_data/`) there is a two-hour measurement test file as *poliris55_02092020_0721_antik_twohour.txt*.
 
 ## Header
 The raw data `header` is:
