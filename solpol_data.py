@@ -5,7 +5,8 @@
 """
 Created on Thu Jun 18 18:32:02 2020
 
-@author: Lilly
+@author: Lilly Daskalopoulou for the PhD thesis titled "The impact of triboelectrification on desert dust flow dynamics"
+         under GPL3 license
 """
 
 import os
