@@ -16,6 +16,7 @@ In this repository you can find:
 - `solpol_data.py`: a python 3.7-based code for processing the raw data retrieved from the instrument
 - `drivers`: the drivers for each peripheral component required for the operation of SolPol
 - `manual`: a complete guide for the instrument set-up, initialization and measurement sequence
+- `test_data`: includes a test data file and data format description
 
 ## Acknowledgements
 This research was supported by D-TECT (Grant Agreement 725698) funded by the European Research Council (ERC) under the European Union's Horizon 2020 research and innovation programme.
