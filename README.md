@@ -1,14 +1,32 @@
 # SolPol
 Instrument manual and data processing algorithm for the NOA/UH - Solar Polarimeter (SolPol)
 
-This repository contains everything related to the operation, characterization and data manipulation of the SolPol - Solar polarimeter, as operated by the NOA-ReACT team. The instrument was conferred to the National Observatory of Athens by the University of Hertfordshire in the framework of the D-TECT/ERC project.
+This repository contains everything related to the operation, characterization and data manipulation of the SolPol - Solar polarimeter, as operated by the NOA-ReACT team. The instrument was conferred to the National Observatory of Athens by the University of Hertfordshire in the framework of the [D-TECT](https://d-tect.space.noa.gr)/ERC project.
 
-**SolPol**:
+**General info**:
 - is a passive polarimetric ground-based instrument that targets directly the Sun
 - has measuring capabilities of a few parts per million (ppms) in linear polarization and of the order of $10^{-7}$ in circular polarization
-- is based on the existing design of the PlanetPol high sensitivity polarimeter as described in Hough et al., 2006. 
-- usage under laboratory conditions is described by Martin et al., 2010.
+- is based on the existing design of the PlanetPol high sensitivity polarimeter as described in [Hough et al., 2006](https://iopscience.iop.org/article/10.1086/507955)
+- usage under laboratory conditions is described by [Martin et al., 2010](https://www.sciencedirect.com/science/article/abs/pii/S0022407310002803)
 
+### Operation
+- Extensive measurements and tests between August 2018 to November 2022
+
+- Locations: 
+
+```mermaid
+graph TD
+    SolPol((SolPol))
+    PANGEA
+    SolPol-->PANGEA([PANGEA:PANhellenic GEophysical observatory of Antikythera])
+    NOA
+    SolPol-->NOA([NOA: National Observatory of Athens])
+    Cyprus
+    SolPol-->Cyprus([Cyprus: Cyprus Institute during 2019 campaign])
+    OSCM
+    SolPol-->OSCM([OSCM: Ocean Science Centre Mindelo, Cabo Verde during ASKOS 2022 campaign])
+  
+```
 
 ## Index
 
@@ -29,6 +47,3 @@ This research was supported by D-TECT (Grant Agreement 725698) funded by the Eur
 - **Instrument PI**: Vassilis Amiridis <vamoir@noa.gr>
 - **Consulting**: Thanasis Georgiou <ageorgiou@noa.gr> @thgeorgiou
 
-
-Period of operation: extensive measurements and tests between August 2018 to November 2022.
-Operation locations: i. the PANGEA observatory in Antikythera (primarily), ii. the National Observatory of Athens (partially), iii. the Cyprus Institute, Nicosia, Cyprus (during 2019 campaign) and iv. the OSCM Institute, Mindelo, Cabo Verde (during ASKOS 2022 campaign).
