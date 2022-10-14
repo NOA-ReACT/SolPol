@@ -22,30 +22,38 @@ The raw data header is:
 
 SOLAR POLARIMETER
 
-`1. Polarimeter Position [deg]`
+1. `Polarimeter Position [deg]`:
 instrument rotational position at 0 and 45 degrees from reference
 
-`2. Rotator Position [deg]`
+2. `Rotator Position [deg]`:
 Polarizer position in sets of [0, 40, 130, 220, 310] in degrees
 
-`3. PEM Setting [nm]`
+3. `PEM Setting [nm]`:
+Photoelastic Modulator Head operating wavelength, default 550nm
 
+4. `Retardation [waves]`:
+PEM induced retardation
 
-`4. Retardation [waves]`
+5. `Wavelength Filter (Wavelength-Bandwidth)`:
+Filter wheel filter selection, default 550nm
 
-`5. Wavelength Filter (Wavelength-Bandwidth)`
+6. `ND-Filter`:
+Neutral density 0.3 filter (pre-defined)
 
-`6. ND-Filter`
+7. `Time (UTC)`:
+Measurement starting time in HH:MM:SS (UTC)
 
-`7. Time (UTC)`
+8. `Bias Voltage on Diode`
+Should be zero if instrument wotking properly, forward bias
 
-`8. Bias Voltage on Diode`
+9. `LabJack, mean DC (AIN0)`:
+DC output voltage from the DAQ in Volts
 
-`9. LabJack, mean DC (AIN0)`
+10. `LabJack, other`:
+State zero if instrument works properly
 
-`10. LabJack, other`
+11. `Lock-in, 1w`:
+RMS Voltage output from channel 1 of the Lock-in amplifier, signal phase on resonant frequency (ω) in degrees
 
-`11. Lock-in, 1w`
-
-`12. Lock-in, 2w`
-
+12. `Lock-in, 2w`:
+RMS Voltage output from channel 2 of the Lock-in amplifier, signal phase on twice the resonant frequency (2ω) in degrees
