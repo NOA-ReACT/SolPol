@@ -39,7 +39,9 @@ In this repository you can find:
 ## Acknowledgements
 This research was supported by D-TECT (Grant Agreement 725698) funded by the European Research Council (ERC) under the European Union's Horizon 2020 research and innovation programme.
 
-The PhD thesis that includes research presented in this repository is co financed by Greece and the European Union (European Social Fund ESF) through the Operational Programme «Human Resources Development, Education and Lifelong Learning» in the context of the project “Strengthening Human Resources Research Potential via Doctorate Research” (MIS 5000432), implemented by the State Scholarships Foundation (ΙΚΥ)».
+The PhD thesis that includes research presented in this repository is co financed by Greece and the European Union (European Social Fund ESF) through the Operational Programme «Human Resources Development, Education and Lifelong Learning» in the context of the project “Strengthening Human Resources Research Potential via Doctorate 
+Research” (MIS 5000432), implemented by the State Scholarships Foundation (ΙΚΥ)».
+
 
 ## Blame
 
