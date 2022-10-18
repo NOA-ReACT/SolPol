@@ -48,6 +48,7 @@ Research” (MIS 5000432), implemented by the State Scholarships Foundation (Ι�
 - **Team lead**: Lilly Daskalopoulou <vdaskalop@noa.gr> @ModusElectrificus
 - **Research consultant**: Alexandra Tsekeri <atsekeri@noa.gr>
 - **Instrument operator**: Panagiotis-Ioannis Raptis <piraptis@meteo.noa.gr>
-- **Instrument PI**: Vassilis Amiridis <vamoir@noa.gr>
+- **Instrument PI**: Vassilis Amiridis <vamoir@noa.gr> (NOA side)
+- **Instrument PI**: William Martin <w.e.martin@herts.ac.uk> (UH side)
 - **Consulting**: Thanasis Georgiou <ageorgiou@noa.gr> @thgeorgiou
 
