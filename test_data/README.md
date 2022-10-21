@@ -11,11 +11,14 @@ classDiagram
   Date: in DDMMYYYY, e.g. 02092020
   class Time
   Time: Start time in HHMM UTC, e.g. 0721
+  class Location
+  Location: Instrument location as antik, ath, cyp, mndl
   class Duration
   Duration: Measurement duration e.g. twohour
   polirisXX ..> Date
   Date ..> Time
-  Time ..> Duration
+  Time ..> Location
+  Location ..> Duration
 ```
 
 In (`test_data/`) there is a two-hour measurement test file as *poliris55_02092020_0721_antik_twohour.txt*.
@@ -66,5 +69,5 @@ RMS Voltage output from channel 2 of the Lock-in amplifier, signal phase on twic
 ! Data file to be valid needs to contain **5** sets of measurements [1-12 above] for each `Rotator Position [deg]` per `Polarimeter Position [deg]`. <br />
 
 
-! Every valid file stops at a `Polarimeter Position [deg]` == 45 degs.
+! Every valid file stops at a `Polarimeter Position [deg]` == 45 degs  & `Rotator Position [deg]` == 310.
 
