@@ -85,11 +85,11 @@ folder containing all the raw `.txt` data acquired by SolPol when installed in t
   
   **location**: lat = 35.86099, long = 23.30982, alt = 193
 
-  `\txt`: data acquired with default instrument aperture size (@5.5mm) labeled as pol_DDMMYYYY_HHMM(in UTC)_antik_duration.txt
+  `\txt`: data acquired with default instrument aperture size (@5.5mm) labeled as pol\_DDMMYYYY\_HHMM(in UTC)\_antik\_duration.txt
 
-  `\txt_iris`: data acquired with different aperture sizes (@4.5mm, 5.5mm and 7mm) labeled as _polirisXX_DDMMYYYY_HHMM(in UTC)_antik_duration_
+  `\txt_iris`: data acquired with different aperture sizes (@4.5mm, 5.5mm and 7mm) labeled as polirisXX\_DDMMYYYY\_HHMM(in UTC)\_antik\_duration.txt
 
-  `\txt_dark`: closed aperture dark measurements labeled as _poldark_DDMMYYYY_HHMM(in UTC)_antik_duration_, either with instrument tracker not tracking (NT index) or   standard tracking (T index)
+  `\txt_dark`: closed aperture dark measurements labeled as poldark\_DDMMYYYY\_HHMM(in UTC)\_antik\_duration.txt, either with instrument tracker not tracking (NT index) or   standard tracking (T index)
 
 
 * `Data_Athens`: 
@@ -117,4 +117,4 @@ folder containing all the raw .txt data acquired by SolPol for the duration of t
 
   `\txt`: data acquired with default instrument aperture size (@5.5mm) labeled as poliris55\_DDMMYYYY\_HHMM(in UTC)\_mndl\_duration.txt
 
-  `\txt_dark`: closed aperture dark measurements labeled as poldark\_DDMMYYYY\_HHMM(in UTC)\_mndl\_duration
+  `\txt_dark`: closed aperture dark measurements labeled as poldark\_DDMMYYYY\_HHMM(in UTC)\_mndl\_duration.txt
