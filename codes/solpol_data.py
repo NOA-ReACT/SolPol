@@ -76,8 +76,8 @@ def pol_plot(name,ii,C,D,xdate):
     plt.ylabel('Polarization in ppm')
     plt.grid(True)
     plt.ylim((-200,200))
-#    plt.xlim(xdate.replace(hour=4,minute=30,second=0),xdate.replace(hour=17,minute=30,second=0))
-    plt.xlim(xdate.replace(hour=6,minute=30,second=0),xdate.replace(hour=19,minute=30,second=0)) #for Mindelo data
+    plt.xlim(xdate.replace(hour=4,minute=30,second=0),xdate.replace(hour=17,minute=30,second=0))
+#    plt.xlim(xdate.replace(hour=6,minute=30,second=0),xdate.replace(hour=19,minute=30,second=0)) #for Mindelo data
     plt.xticks(rotation=30)
     plt.tight_layout()
     plt.legend()
@@ -93,18 +93,19 @@ def evpa_plot(name1,jj,E,F):
     fig, ax = plt.subplots()
     
     plt.plot(E,F,'ko',label='EVPA')
-    plt.plot(np.zeros(180),'r')
-    plt.xlim((0,180))
+    plt.plot(np.zeros(90),'r')
+    plt.xlim((10,90))
+    plt.ylim((0,180))
     # plt.plot(np.zeros(math.ceil(max(EVPA_perday_df['zenith']))+int(min(EVPA_perday_df['zenith']))),'r')
     plt.xlabel('Solar Zenith Angle (degs)') 
     plt.ylabel('Electric Vector Polarization Angle (degs)')
     plt.grid(True)
     plt.title(name1)
-    plt.xticks(rotation=30)
+    plt.xticks(rotation=0)
     plt.tight_layout()
     
     # save plots
-#    plt.savefig(name1 + '.png')
+#    plt.savefig(name1 + '.png',dpi=1200)
 #    plt.savefig(name1 + '.eps',format ='eps')
         
 
@@ -158,7 +159,7 @@ def chauvenet(A,B):
 ## ================================================================ ##
 # Specify data folder e.g. Data_Antikythera or Data_Athens, Data_Cyprus, Data_mindelo
 from pathlib import Path
-Data_folder = Path('C:/Users/Lilly Daskalopoulou/Desktop/PhD/Papers/Dust_Orientation/Data_Mindelo/txt')
+Data_folder = Path('C:/Users/Lilly Daskalopoulou/Desktop/PhD/Papers/Dust_Orientation/Data_Antikythera/temp')
 str(Data_folder)
 
 
@@ -166,7 +167,7 @@ str(Data_folder)
 import glob
 
 solpol_raw = {}
-for filename in glob.glob('C:/Users/Lilly Daskalopoulou/Desktop/PhD/Papers/Dust_Orientation/Data_Mindelo/temp/*.txt'):
+for filename in glob.glob('C:/Users/Lilly Daskalopoulou/Desktop/PhD/Papers/Dust_Orientation/Data_Antikythera/temp/*.txt'):
     solpol_raw[filename[:-4]] = pd.read_csv(filename, sep=' ', header=12)
     print(filename)
 
@@ -175,7 +176,7 @@ for filename in glob.glob('C:/Users/Lilly Daskalopoulou/Desktop/PhD/Papers/Dust_
 # @Antik: (35.86099, 23.30982, 193), @Athens:(37.966295, 23.710624, 60), @Cy:(35.14063, 33.38135, 181)
 # @Mindelo: (35.86099, 23.30982, 20)
     
-location = "Mindelo"
+location = "Antikythera"
 
 if location == 'Antikythera' :
     lat = 35.86099
@@ -286,10 +287,13 @@ for key,value in solpol_raw.items():
     ########## Subtract the mean dark DC value per day of measurement #########
     import dark
     
-    dark_dr_gr = dark.dark_df.groupby(pd.Grouper(freq='D'))
+    dark_dr_gr = dark.dark_df.groupby(pd.Grouper(freq='D')) #pads dates search !
+#    dark_dr_gr = dark.dark_df.groupby(dark.dark_df.index.date)
+    darkdate_list = []
     
     for date1, df in dark_dr_gr:
         dark_daily_df = df
+        darkdate_list.append(date1.date())
 
         if date == date1.date():
             
@@ -298,11 +302,14 @@ for key,value in solpol_raw.items():
             
             I['Values'] = I['Values'] - I_dark_daily_mean
             break
-    
+    # !!! here
+    # when current date doesn't have dark measurements then subtract the mean dark value from all the dark measurements of the group
+    if date not in darkdate_list:
+        I['Values'] = I['Values'] - float(dark.I_dark_mean)
     
     # date before the 2020-08-27 don't have darks, for those subtract the mean dark value from all the dark measurements
     if date < pd.to_datetime('2020-08-27').date():
-            I['Values'] = I['Values'] - float(dark.I_dark_mean)
+        I['Values'] = I['Values'] - float(dark.I_dark_mean)
     ###########################################################################
     
     # Geometric correction
@@ -523,7 +530,7 @@ for key,value in solpol_raw.items():
     elif len(zero_degs) < len(ffive_degs):
         ffive_degs = ffive_degs.iloc[0:len(zero_degs)]
     
-    # EVPA calculation
+    # EVPA calculation (previous version, do not keep plots)
     idx1 = zero_degs.loc[zero_degs['Stokes_Values'] == 0]
     
     EVPA_df = pd.DataFrame(index=ffive_degs['DateTime'],columns=range(1))
@@ -539,7 +546,7 @@ for key,value in solpol_raw.items():
     EVPA_df['EVPA'] = EVPA_df['EVPA'].astype(float)
     EVPA_df['EVPA (degs)'] = np.rad2deg(EVPA_df['EVPA'])
     
-    ##### Solar Zenith Angle (SZA) calcuation #########
+    ##### Solar Zenith Angle (SZA) calculation #########
     SZA_df1 = pvlib.solarposition.get_solarposition(time_ave_ave['DateTime'], lat, long, alt)
     # plt.plot(SZA_df1['zenith'])
     SZA_df2 = pvlib.solarposition.get_solarposition(ffive_degs['DateTime'], lat, long, alt)
@@ -565,7 +572,7 @@ for key,value in solpol_raw.items():
     temp_phs = pd.concat([temp_phs1,temp_phs2],axis=1)
     
     if len(lin_pol) > len(time_ave_gr):
-        lin_pol = lin_pol.iloc[0:len(time_ave_gr)] # edw kati paizei me to linpol argotera des to !!!
+        lin_pol = lin_pol.iloc[0:len(time_ave_gr)] # lin pol is not consistent, must check !!!
     
     stokes_df = lin_pol.set_index(time_ave_gr['DateTime'])
     stokes_df = stokes_df.rename(columns={0:'Stokes'})
@@ -670,7 +677,7 @@ for date1, df in solpol_grouped:
         ch_lin.append(solpol_perday_smoothed1)
         ch_circ.append(solpol_perday_smoothed2)
         
-        ## write into file
+        #!!! write into file
         fname2 = "polirisT2_{curr_date}_Antik_smoothed".format(curr_date = d)
 #        solpol_perday_smoothed1.to_csv(fname2, sep=',')
         
@@ -692,7 +699,7 @@ for date2,val in EVPA_grouped:
     if len(val) > 0:
         EVPA_perday_df = EVPA_grouped.get_group(date2)  
     
-        ## write into file
+        #!!! write into file
         d1 = pd.to_datetime(date2).date()
         fname1 = "EVPA_{curr_date}_Antik".format(curr_date = d1) #change sufix according to location: (Ath, Antik, Cy)
 #        val.to_csv(fname1, sep=',')
@@ -731,7 +738,7 @@ for date3,val1 in EVPA_flt_grouped:
     if len(val1) > 0:
         EVPA_flt_perday_df = EVPA_flt_grouped.get_group(date3)  
     
-    ## write into file
+    #!!! write into file
         d3 = pd.to_datetime(date3).date()
         fname3 = "EVPA_flt_{curr_date}_Antik".format(curr_date = d3) #change sufix according to location: (Ath, Antik, Cy)
 #        val1.to_csv(fname3, sep=',')
@@ -745,7 +752,7 @@ for date3,val1 in EVPA_flt_grouped:
         print('Not existing measurements during this date')
 
 
-#### ================= DOLP calculation, norm. Q, U., DOLP plotting ============== ##
+#### ================= DOLP calculation, norm. Q, U., DOLP, EVPA plotting ============================== ##
 ## =============================================================================================== ##
 
 last_all_df = pd.DataFrame()
@@ -753,7 +760,6 @@ for df6 in last_lst:
     last_all_df = last_all_df.append(df6)
     last_all_df=last_all_df.sort_index()
 
-# Appply the Chauvenet criterion
 # df initialization
 temp_last = pd.DataFrame()
 temp_dolp = pd.DataFrame()
@@ -763,6 +769,9 @@ temp_smooth = pd.DataFrame()
 temp_dolp_smoothed = pd.DataFrame()
 norm_Q_smoothed = pd.DataFrame()
 norm_U_smoothed = pd.DataFrame()
+true_EVPA_df = pd.DataFrame()
+EVPA_over_df = pd.DataFrame()
+EVPA_over_df = pd.DataFrame()
 error = pd.DataFrame()
 
 # Mean I for every set of 4 measurements, should be independent of polarizer position
@@ -818,19 +827,74 @@ norm_Q_indx = temp_last['Q/I'].to_frame().dropna()
 temp_last['U/I'] = temp_last['U/I'] / (2*temp_last['mean I'])
 norm_U = temp_last['U/I'].to_frame().dropna().reset_index(drop=True)
 
-# chauvenet smoothed Q/I & U/I
+# Appply the Chauvenet criterion, smoothed Q/I & U/I
 norm_Q_smoothed = chauvenet(temp_last['Q/I'].dropna(),norm_Q_smoothed).drop(['Chauv_120min'],axis=1)
 norm_U_smoothed = chauvenet(temp_last['U/I'].dropna(),norm_U_smoothed).drop(['Chauv_120min'],axis=1)
 #temp_smooth = norm_Q_smoothed.merge(norm_U_smoothed)
 temp_smooth = pd.concat([norm_Q_smoothed,norm_U_smoothed],axis=1)
 
-###### Degree of Linear Polarization (DOLP) calculation #########
+
+###=========== Degree of Linear Polarization (DOLP) calculation ==========#####
 temp_dolp['DOLP'] = np.sqrt(norm_Q['Q/I']**2 + norm_U['U/I']**2) 
 temp_dolp = temp_dolp.set_index(norm_Q_indx.index)
-#temp_dolp = temp_dolp.set_index(temp_Q.index) 
-#temp_dolp = temp_dolp.set_index(solpol_all_df.index)
 
-# DOLP stadard error calculation, per 12 hrs
+
+###==================== EVPA calculation (correct) =======================#####
+true_EVPA = np.arctan(norm_U['U/I']/norm_Q['Q/I'])/2
+true_EVPA_halfpi = true_EVPA + np.pi/2 # and the pi/2 incremented angles that correspond to the same artan() result
+true_EVPA_mhalfpi = true_EVPA - np.pi/2
+
+# convert to (0,2pi) space
+true_EVPA_df = pd.DataFrame(np.mod(true_EVPA, np.pi))
+true_EVPA_df.rename(columns={0:'EVPA (rad)'},inplace=True)
+true_EVPA_df = true_EVPA_df.set_index(temp_dolp.index)
+
+# convert halfpis to (0,2pi) space
+true_EVPA_halfdf = pd.DataFrame(np.mod(true_EVPA_halfpi, np.pi))
+true_EVPA_halfdf.rename(columns={0:'EVPA_halfpi (rad)'},inplace=True) 
+true_EVPA_halfdf = true_EVPA_halfdf.set_index(temp_dolp.index)
+
+true_EVPA_df = pd.concat([true_EVPA_df['EVPA (rad)'],true_EVPA_halfdf['EVPA_halfpi (rad)']],axis=1)
+
+ #rad to degrees
+true_EVPA_df['EVPA (degs)'] = np.rad2deg(true_EVPA_df['EVPA (rad)'])
+true_EVPA_df['EVPA_halfpi (degs)'] = np.rad2deg(true_EVPA_halfdf['EVPA_halfpi (rad)']) 
+
+# filter for cos2χ values with the same sign as Q
+true_EVPA_flt1 = true_EVPA_df['EVPA (degs)'].loc[(np.sign(np.cos(2*true_EVPA_df['EVPA (rad)'])) + np.sign(norm_Q_indx['Q/I']))!=0] 
+true_EVPA_flt2 = true_EVPA_df['EVPA_halfpi (degs)'].loc[(np.sign(np.cos(2*true_EVPA_df['EVPA_halfpi (rad)'])) + np.sign(norm_Q_indx['Q/I']))!=0]
+
+## sign checking
+#temp_sign = pd.concat([np.sign(np.cos(2*true_EVPA_df['EVPA (rad)'])),np.sign(norm_Q_indx['Q/I'])],axis=1)
+
+true_EVPA_flt = pd.concat([true_EVPA_flt1, true_EVPA_flt2],axis=1)
+true_EVPA_flt['EVPA (degs)'] = true_EVPA_flt['EVPA (degs)'].fillna(0)
+true_EVPA_flt['EVPA_halfpi (degs)'] = true_EVPA_flt['EVPA_halfpi (degs)'].fillna(0)
+true_EVPA_flt['total EVPA (degs)'] = true_EVPA_flt['EVPA (degs)'] +  true_EVPA_flt['EVPA_halfpi (degs)']
+
+# concat to DOLP dataframe
+temp_dolp = pd.concat([temp_dolp,true_EVPA_flt['total EVPA (degs)']],axis=1)
+
+# Filtered EVPA for DOLP values over 50ppm 
+EVPA_over_df = pd.DataFrame(temp_dolp.loc[temp_dolp['DOLP'] >= 50*10**-6])
+SZA_EVPA1 = pvlib.solarposition.get_solarposition(EVPA_over_df.index, lat, long, alt)
+EVPA_over_df['SZA1'] = SZA_EVPA1['zenith']
+mean_EVPA1 = np.mean(EVPA_over_df['total EVPA (degs)'])
+
+# plot EVPA_over
+evpa_plot('EVPA for DOLP values above 50 ppm, Antikythera',1,EVPA_over_df['SZA1'],EVPA_over_df['total EVPA (degs)'])
+
+# Filtered EVPA for DOLP values below 50ppm 
+EVPA_below_df =pd.DataFrame(temp_dolp.loc[temp_dolp['DOLP'] <= 50*10**-6])
+SZA_EVPA2 = pvlib.solarposition.get_solarposition(EVPA_below_df.index, lat, long, alt)
+EVPA_below_df['SZA2'] = SZA_EVPA2['zenith']
+mean_EVPA2 = np.mean(EVPA_below_df['total EVPA (degs)'])
+
+# plot EVPA_below
+evpa_plot('EVPA for DOLP values below 50 ppm, Antikythera',1,EVPA_below_df['SZA2'],EVPA_below_df['total EVPA (degs)'])
+
+
+###========== DOLP standard error calculation, per 12 hrs ==================###
 error['Stdev'] = temp_dolp['DOLP'].resample('2H', label='right', closed='right').std()
 error['Cnt'] = temp_dolp['DOLP'].resample('2H', label='right', closed='right').count()
 error['StdError'] = error['Stdev'] / np.sqrt(error['Cnt'])
@@ -842,10 +906,12 @@ std_error = std_error.set_index(temp_dolp.index)
 # concat to DOLP dataframe
 temp_dolp['StdError'] = std_error['StdError']
 
-# smoothed dataset through Chauvenet
+# smoothed DOLP through Chauvenet
 temp_dolp_smoothed = chauvenet(temp_dolp['DOLP'],temp_dolp)
 temp_dolp_smoothed = temp_dolp_smoothed.drop(['Chauv_120min'],axis=1)
 temp_dolp_smoothed = temp_dolp_smoothed.join(temp_dolp['StdError'])
+
+temp_dolp_smoothed = temp_dolp_smoothed.join(temp_dolp['total EVPA (degs)']) #change for the total EVPA angle, else ['EVPA (degs)']
 
 # for the unsmoothed dataset enable this
 #last_all_df1 = pd.concat([temp_last,temp_dolp_smoothed],axis=1)
@@ -858,10 +924,11 @@ last_all_df1_smooth = pd.concat([last_all_df1_smooth, mean_I], axis=1)
 SZA_all = pvlib.solarposition.get_solarposition(last_all_df1_smooth.index, lat, long, alt)
 
 last_all_df1_smooth = pd.concat([last_all_df1_smooth, SZA_all['zenith']], axis=1)
+#last_all_df1_smooth = pd.concat([last_all_df1_smooth, temp_dolp_smoothed['total EVPA (degs)']], axis=1)
 last_all_df1_smooth.rename(columns={'zenith':'SZA'},inplace=True)
 
 
-# Group by day & Plot
+####===================== Group by day & Plot ============================#####
 last_all_df_gr = last_all_df1_smooth.groupby(pd.Grouper(freq='D'))
 
 for datey,dfy in last_all_df_gr:
@@ -871,10 +938,7 @@ for datey,dfy in last_all_df_gr:
     except KeyError:
         print(f"Date {datey} not found, skipping")
         continue
-    
-#    temp1000 = np.zeros(len(last_day_df.index))
-#    temp1000 = pd.DataFrame(temp1000).set_index(last_day_df.index)
-    
+        
     plt.figure(i)
     myFmt = mdates.DateFormatter('%d-%m-%y %H:%M')
     fig, ax = plt.subplots()
@@ -883,46 +947,42 @@ for datey,dfy in last_all_df_gr:
     ax.grid()
     
 #    plt.plot(last_day_df['Phase cor. signal'],'ro', label = 'Phase cor. signal')
-    plt.plot(last_day_df['DOLP']*10**6,'bo', label = 'DOLP') #/geom*10**6 this without the scaling factor,  last_day_df['DOLP']*10**6 - 2*
+    
+    plt.plot(last_day_df['DOLP']*10**6,'bo', label = 'DOLP') #/geom*10**6 this without the scaling factor
 #    plt.errorbar(last_day_df['DOLP'].index,last_day_df['DOLP']*10**6, yerr = [2*last_day_df['StdError']*10**6,2*last_day_df['StdError']*10**6], ecolor=(0.8, 0.8, 0.8),elinewidth=2, capsize=5,capthick=2)
-
 #    plt.errorbar(last_day_df['DOLP'].index,last_day_df['DOLP']*10**6, yerr = [last_day_df['StdError']*10**6, 2*(last_day_df['StdError']*10**6)], ecolor=(0.8, 0.8, 0.8),capthick=2)
+    
     plt.plot(last_day_df['Q/I']*10**6,'ko',label = 'Q/I') #/geom*10**6
     plt.plot(last_day_df['U/I']*10**6,'mo',label = 'U/I') #/geom*10**6
-    plt.xlabel('Time (UTC)') #for Athens, Cyprus & several Antik.
-#    plt.plot(temp1000,'r')
+    plt.xlabel('DateTime (UTC)')
+
     plt.ylim((-0.0002*10**6,0.0002*10**6))
-#    plt.ylim((-0.001,0.001))
-#    plt.xlim(datey.replace(hour=4,minute=30,second=0),datey.replace(hour=17,minute=30,second=0))
-    plt.xlim(datey.replace(hour=6,minute=30,second=0),datey.replace(hour=19,minute=30,second=0))  # for Mindelo data
+    plt.xlim(datey.replace(hour=4,minute=30,second=0),datey.replace(hour=17,minute=30,second=0))
+#    plt.xlim(datey.replace(hour=6,minute=30,second=0),datey.replace(hour=19,minute=30,second=0))  # for Mindelo data
     plt.xticks(rotation=30)
     plt.tight_layout()
     plt.legend()
     i+=1
     
-    # save plots
+    #!!! save plots
     fname4 = "dolp_{curr_date}_{curr_location}".format(curr_date = datey.strftime("%Y-%m-%d"),curr_location = location) #change sufix according to location   
     
-    plt.savefig(fname4 + '.png')
-    plt.savefig(fname4 + '.eps',format ='eps')
+    #uncheck these to save plots and csv file
+#    plt.savefig(fname4 + '.png')
+#    plt.savefig(fname4 + '.eps',format ='eps')
     
 #    dfy.to_csv(fname4 + '.csv', sep=',') # save to file
     
+    # plot EVPA per day
+    fname3 = "EVPA_{curr_date}_Antik".format(curr_date = datey.strftime("%Y-%m-%d")) #change sufix according to location: (Ath, Antik, Cy)
+#        val1.to_csv(fname3, sep=',')
+        
+    cnt2 += 1
+        
+    # plot regular EVPA
+    evpa_plot(fname3,cnt2,last_day_df['SZA'],last_day_df['total EVPA (degs)'])
+    plt.savefig(fname3 + '_v2.png')
 
-###============ Plot multiple DOLP "instances" in one plot ============######       
-#dolp_minus_dark = pd.DataFrame()
-#dolp_minus_dark = last_day_df['DOLP']*10**6
-#dolp_minus_dark = pd.DataFrame(dolp_minus_dark)
-#dolp_minus_dark.rename(columns={'DOLP':'DOLP_regular'},inplace=True)
 
-#dolp_minus_dark = pd.concat([last_day_df['DOLP']*10**6,dolp_minus_dark],axis=1)
-#dolp_minus_dark.rename(columns={'DOLP':'DOLP_Imean'},inplace=True)
-
-#plt.plot(dolp_minus_dark['DOLP_regular'],'ko',label = 'Regular DOLP')
-#plt.plot(dolp_minus_dark['DOLP_Imax'],'mo',label = 'DOLP - max. DC dark')
-#plt.plot(dolp_minus_dark['DOLP_Imean'],'bo',label = 'DOLP - mean DC dark')
-#plt.plot(dolp_minus_dark['DOLP_Imin'],'ro',label = 'DOLP - min. DC dark')
-#plt.ylim(0,200)
-#plt.xticks(rotation=30)
-#plt.legend()
-    
+##############################################################################################################################################################################################################################     
+##############################################################################################################################################################################################################################
