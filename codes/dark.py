@@ -22,7 +22,7 @@ def filedate(key_file):
     
     return temp1
 
-def dark(datafile):  
+def darkread(datafile):  
     darktime = datafile[datafile['Data_Type']==7]
     darktime['DateTime'] = pd.to_datetime(darktime['Values'])
     darktime = darktime.reset_index()
@@ -80,7 +80,7 @@ for dkey,dvalue in solpol_dark_raw.items():
     solpol_dark_raw1.columns = ['Data_Type','Values']
     solpol_dark_raw1['Data_Type'] = solpol_dark_raw1['Data_Type'].astype(int)
     
-    I_dark_av,dark_data = dark(solpol_dark_raw1)
+    I_dark_av,dark_data = darkread(solpol_dark_raw1)
     
     I_dark_mean_list.append(I_dark_av) 
     

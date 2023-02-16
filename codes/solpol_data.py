@@ -10,6 +10,7 @@ Created on Thu Jun 18 18:32:02 2020
 """
 
 import os
+import glob
 import numpy as np
 import numpy.ma as ma
 import math
@@ -25,8 +26,10 @@ import seaborn as sns
 import warnings
 import pvlib
 
+from pathlib import Path
 from pvlib import atmosphere
 from pvlib.tools import datetime_to_djd, djd_to_datetime
+
 
 
 # Retrieve the file date from pathname and convert to datetime
@@ -158,20 +161,17 @@ def chauvenet(A,B):
 ## ================ Specify data folders/path ===================== ##
 ## ================================================================ ##
 # Specify data folder e.g. Data_Antikythera or Data_Athens, Data_Cyprus, Data_mindelo
-from pathlib import Path
 Data_folder = Path('C:/Users/Lilly Daskalopoulou/Desktop/PhD/Papers/Dust_Orientation/Data_Antikythera/temp')
 str(Data_folder)
 
 
 # Read SolPol raw texts file from folder
-import glob
-
 solpol_raw = {}
 for filename in glob.glob('C:/Users/Lilly Daskalopoulou/Desktop/PhD/Papers/Dust_Orientation/Data_Antikythera/temp/*.txt'):
     solpol_raw[filename[:-4]] = pd.read_csv(filename, sep=' ', header=12)
     print(filename)
 
-# Insert SolPol position
+# !!! Insert SolPol position
 # lat, long, alt alter for each location
 # @Antik: (35.86099, 23.30982, 193), @Athens:(37.966295, 23.710624, 60), @Cy:(35.14063, 33.38135, 181)
 # @Mindelo: (35.86099, 23.30982, 20)
@@ -218,7 +218,7 @@ for key,value in solpol_raw.items():
     print(date)
     print(aperture_str)
    
-    # input aperture size from filename
+    # !!! input aperture size from filename
     if aperture_str == 'poliris45':
         aperture = 4.5  # in mm diameter
     elif aperture_str == 'poliris55':
@@ -284,40 +284,40 @@ for key,value in solpol_raw.items():
     I = pd.DataFrame(solpol_raw1[solpol_raw1['Data_Type']==9])
     I['Values'] = I['Values'].astype(float)
     
-    ########## Subtract the mean dark DC value per day of measurement #########
+    ########## Μean dark DC value per measurement day #########
     import dark
     
-    dark_dr_gr = dark.dark_df.groupby(pd.Grouper(freq='D')) #pads dates search !
-#    dark_dr_gr = dark.dark_df.groupby(dark.dark_df.index.date)
+    #dark_dr_gr = dark.dark_df.groupby(pd.Grouper(freq='D')) #pads dates search !
+    dark_dr_gr = dark.dark_df.groupby(dark.dark_df.index.date)
     darkdate_list = []
     
-    for date1, df in dark_dr_gr:
+    for ddate, df in dark_dr_gr:
         dark_daily_df = df
-        darkdate_list.append(date1.date())
+        darkdate_list.append(ddate)
 
-        if date == date1.date():
+        if date == ddate:
             
             I_dark_daily_mean = np.mean(dark_daily_df['Values'])
             print(I_dark_daily_mean)
             
             I['Values'] = I['Values'] - I_dark_daily_mean
             break
-    # !!! here
-    # when current date doesn't have dark measurements then subtract the mean dark value from all the dark measurements of the group
+    
+    # date with no dark measurements -> subtract mean dark I (derived by all dark measurements of the group)
     if date not in darkdate_list:
         I['Values'] = I['Values'] - float(dark.I_dark_mean)
     
-    # date before the 2020-08-27 don't have darks, for those subtract the mean dark value from all the dark measurements
+    # dates before 2020-08-27 don't have darks -> also subtract the mean dark I
     if date < pd.to_datetime('2020-08-27').date():
         I['Values'] = I['Values'] - float(dark.I_dark_mean)
     ###########################################################################
     
-    # Geometric correction
-    geom = (aperture*10**(-3)/2)**2/(4*(53*10**(-2))**2) # for the normalization with solid angle, where geom = Ω/4pi
-#    geom1 = math.pi/4*((4.5*10**(-3)/2)**2)
-#    I = I*geom
     I = I.drop(columns='Data_Type')
     I = I.reset_index()
+    
+  #   Geometric correction
+  # geom = (aperture*10**(-3)/2)**2/(4*(53*10**(-2))**2) # for the normalization with solid angle, where geom = Ω/4pi
+  #   I = I*geom
     
     # Labjack other output
     labjack = solpol_raw1[solpol_raw1['Data_Type']==10]
@@ -398,13 +398,9 @@ for key,value in solpol_raw.items():
 
     ############ Circular and Linear Polarization calculation #############
 
-### 1w corrected output, no phase modulated (Circular)
-#    ch1_eff = 0.7342 # pre-defined channel 1 modulation efficiency
-#    A1_Ch1 = (solpol_data_rdc['Amplitude 1w']/solpol_data_rdc['mean DC'])/ch1_eff
-
     ### !! in order to later divide with mean I, use the following expressions
     J1_A = 0.519153 # Bessel function J1(A) for A = 2.4048
-    ch1_eff = np.sqrt(2)/J1_A
+    ch1_eff = np.sqrt(2)/J1_A # channel 1 modulation efficiency
     A1_Ch1 = solpol_data_rdc['Amplitude 1w']*ch1_eff
     ###
     
@@ -530,7 +526,7 @@ for key,value in solpol_raw.items():
     elif len(zero_degs) < len(ffive_degs):
         ffive_degs = ffive_degs.iloc[0:len(zero_degs)]
     
-    # EVPA calculation (previous version, do not keep plots)
+    # EVPA calculation
     idx1 = zero_degs.loc[zero_degs['Stokes_Values'] == 0]
     
     EVPA_df = pd.DataFrame(index=ffive_degs['DateTime'],columns=range(1))
@@ -590,8 +586,9 @@ for key,value in solpol_raw.items():
     
     last_df = pd.concat([temp_phs,U],axis=1)
     last_df = pd.concat([last_df,Q],axis=1)
-#    updated_last_df = last_df.drop([U.index[-1],last_df.index[-1]])
+    
     temp_flag = pd.DataFrame(temp_stokes['Flag']).set_index(temp_stokes['DateTime'])
+    
     last_df = pd.concat([last_df,temp_I,temp_flag],axis=1)
     last_df = last_df.loc[last_df.index <= Q.index[-1]]
     
@@ -981,7 +978,7 @@ for datey,dfy in last_all_df_gr:
         
     # plot regular EVPA
     evpa_plot(fname3,cnt2,last_day_df['SZA'],last_day_df['total EVPA (degs)'])
-    plt.savefig(fname3 + '_v2.png')
+   # plt.savefig(fname3 + '_v2.png')
 
 
 ##############################################################################################################################################################################################################################     
