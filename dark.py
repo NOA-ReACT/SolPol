@@ -12,6 +12,10 @@ import numpy.ma as ma
 import math
 import scipy.io
 import pandas as pd
+import glob
+
+def set_date2(dt,darkdate ):
+    return dt.replace(day=darkdate.day, month=darkdate.month, year=darkdate.year)
 
 # Retrieve the file date from pathname and convert to datetime
 def filedate(key_file):
@@ -22,11 +26,11 @@ def filedate(key_file):
     
     return temp1
 
-def darkread(datafile):  
+def darkread(datafile, darkdate):  
     darktime = datafile[datafile['Data_Type']==7]
     darktime['DateTime'] = pd.to_datetime(darktime['Values'])
     darktime = darktime.reset_index()
-    darktime['DateTime'] = darktime['DateTime'].apply(set_date2)
+    darktime['DateTime'] = darktime['DateTime'].apply(set_date2, args=[darkdate])
     
     # DC current
     I_dark = datafile[datafile['Data_Type']==9]
@@ -50,46 +54,40 @@ def darkread(datafile):
     
     return(I_dark_mean,dark_data_rdc)
 
-# Read SolPol dark text file from folder
-import glob
-
-solpol_dark_raw = {}
-for dark_filename in glob.glob('C:/Users/Lilly Daskalopoulou/Desktop/PhD/Papers/Dust_Orientation/Data_Antikythera/txt_dark/*.txt'):
-    solpol_dark_raw[dark_filename[:-4]] = pd.read_csv(dark_filename, sep=' ', header=12)
-    print(dark_filename)
-
 ## =========================== SolPol Dark Data retrieval ================================= ##
 ## =================================================================================== ##
-solpol_dark_raw1 = pd.DataFrame()
-I_dark_mean_list = []
-dark_list = []
-
-for dkey,dvalue in solpol_dark_raw.items():
-    solpol_dark_raw1 = dvalue
-    solpol_dark_dates = dkey
-    darkdate = filedate(dkey)
+def get_dark(dark_path):
     
-    print(darkdate)
-
-    import datetime as dt
+    solpol_dark_raw = {}
+    for dark_filename in glob.glob(dark_path + '/*.txt'):
+        solpol_dark_raw[dark_filename[:-4]] = pd.read_csv(dark_filename, sep=' ', header=12)
+        print(dark_filename)
     
-    def set_date2(dt):
-        return dt.replace(day=darkdate.day, month=darkdate.month, year=darkdate.year)
+    solpol_dark_raw1 = pd.DataFrame()
+    I_dark_mean_list = []
+    dark_list = []
     
-    solpol_dark_raw1 = solpol_dark_raw1.drop(columns=['2w'])
-    solpol_dark_raw1.columns = ['Data_Type','Values']
-    solpol_dark_raw1['Data_Type'] = solpol_dark_raw1['Data_Type'].astype(int)
+    for dkey,dvalue in solpol_dark_raw.items():
+        solpol_dark_raw1 = dvalue
+        solpol_dark_dates = dkey
+        darkdate = filedate(dkey)
+        
+        
+        print(darkdate)
     
-    I_dark_av,dark_data = darkread(solpol_dark_raw1)
+        solpol_dark_raw1 = solpol_dark_raw1.drop(columns=['2w'])
+        solpol_dark_raw1.columns = ['Data_Type','Values']
+        solpol_dark_raw1['Data_Type'] = solpol_dark_raw1['Data_Type'].astype(int)
+        
+        I_dark_av,dark_data = darkread(solpol_dark_raw1,darkdate)
+        
+        I_dark_mean_list.append(I_dark_av) 
+        
+        dark_list.append(dark_data)
+        
+    dark_df = pd.DataFrame()
+    for darkdc in dark_list:
+        dark_df = dark_df.append(darkdc)  
     
-    I_dark_mean_list.append(I_dark_av) 
-    
-    dark_list.append(dark_data)
-    
-I_dark_mean = np.mean(I_dark_mean_list) #total mean for all days
-
-dark_df = pd.DataFrame()
-for darkdc in dark_list:
-    dark_df = dark_df.append(darkdc)  
-
+    return darkdate, np.mean(I_dark_mean_list), dark_df #total mean for all days, dark data
 

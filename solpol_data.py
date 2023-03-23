@@ -11,6 +11,7 @@ Created on Thu Jun 18 18:32:02 2020
 
 import os
 import glob
+import argparse
 import numpy as np
 import numpy.ma as ma
 import math
@@ -22,6 +23,9 @@ import matplotlib.dates as mdates
 import matplotlib.cm as cmaps
 import pytz
 import seaborn as sns
+from sys import exit
+
+import dark
 
 import warnings
 import pvlib
@@ -30,6 +34,29 @@ from pathlib import Path
 from pvlib import atmosphere
 from pvlib.tools import datetime_to_djd, djd_to_datetime
 
+# Insert SolPol position   
+site_location = {
+   'Antikythera':{
+       'lat' : 35.86099,
+       'long' : 23.30982,
+       'alt' : 193
+   },
+   'Athens':{
+       'lat' : 37.966295,
+       'long' : 23.710624,
+       'alt' : 60
+   },
+   'Cyprus':{
+       'lat' : 35.14063,
+       'long' : 33.38135,
+       'alt' : 181
+   },
+   'Mindelo':{
+       'lat' : 16.87775,
+       'long' : -24.994889,
+       'alt' : 20
+   }
+}
 
 
 # Retrieve the file date from pathname and convert to datetime
@@ -160,40 +187,32 @@ def chauvenet(A,B):
 
 ## ================ Specify data folders/path ===================== ##
 ## ================================================================ ##
-# Specify data folder e.g. Data_Antikythera or Data_Athens, Data_Cyprus, Data_mindelo
-Data_folder = Path('C:/Users/Lilly Daskalopoulou/Desktop/PhD/Papers/Dust_Orientation/Data_Antikythera/temp')
-str(Data_folder)
+# Parse arguments
+argparser = argparse.ArgumentParser()
+argparser.add_argument('data_folder', help="SolPol Data folder")
+argparser.add_argument('dark_data_folder', help="SolPol Dark Data folder")
+argparser.add_argument('location', help="SolPol operation location " +str(list(site_location.keys())))
 
+args = argparser.parse_args()
+location = args.location
+try:
+    lat = site_location[location]['lat']
+    long = site_location[location]['long']
+    alt = site_location[location]['alt']
+except KeyError:
+    print("Wrong input location")
+    exit(1)
 
 # Read SolPol raw texts file from folder
 solpol_raw = {}
-for filename in glob.glob('C:/Users/Lilly Daskalopoulou/Desktop/PhD/Papers/Dust_Orientation/Data_Antikythera/temp/*.txt'):
-    solpol_raw[filename[:-4]] = pd.read_csv(filename, sep=' ', header=12)
-    print(filename)
+try:
+    for filename in glob.glob(args.data_folder + '/*.txt'):
+        solpol_raw[filename[:-4]] = pd.read_csv(filename, sep=' ', header=12)
+        print(filename)
+except Exception as e:
+    print(e)
+    exit(1)
 
-# !!! Insert SolPol position
-# lat, long, alt alter for each location
-# @Antik: (35.86099, 23.30982, 193), @Athens:(37.966295, 23.710624, 60), @Cy:(35.14063, 33.38135, 181)
-# @Mindelo: (35.86099, 23.30982, 20)
-    
-location = "Antikythera"
-
-if location == 'Antikythera' :
-    lat = 35.86099
-    long = 23.30982
-    alt = 193
-elif location == 'Athens':
-    lat = 37.966295
-    long = 23.710624
-    alt = 60
-elif location == 'Cyprus':
-    lat = 35.14063
-    long = 33.38135
-    alt = 181
-elif location == 'Mindelo':
-    lat = 16.87775
-    long = -24.994889
-    alt = 20
 
 ## ====================== SolPol Data retrieval ====================== ##
 ## =================================================================== ##
@@ -210,7 +229,7 @@ solpol_list = [] # for the raw data plotting
 
 ## ===================== Pre-processing ============================== ##
 ## =================================================================== ##
-jj =0 
+jj = 0 
 for key,value in solpol_raw.items():
     solpol_raw1 = value
     solpol_dates = key
@@ -285,10 +304,10 @@ for key,value in solpol_raw.items():
     I['Values'] = I['Values'].astype(float)
     
     ########## Μean dark DC value per measurement day #########
-    import dark
+    darkdate,I_dark_mean, dark_df = dark.get_dark(args.dark_data_folder)
     
     #dark_dr_gr = dark.dark_df.groupby(pd.Grouper(freq='D')) #pads dates search !
-    dark_dr_gr = dark.dark_df.groupby(dark.dark_df.index.date)
+    dark_dr_gr = dark_df.groupby(dark_df.index.date)
     darkdate_list = []
     
     for ddate, df in dark_dr_gr:
@@ -305,11 +324,11 @@ for key,value in solpol_raw.items():
     
     # date with no dark measurements -> subtract mean dark I (derived by all dark measurements of the group)
     if date not in darkdate_list:
-        I['Values'] = I['Values'] - float(dark.I_dark_mean)
+        I['Values'] = I['Values'] - float(I_dark_mean)
     
     # dates before 2020-08-27 don't have darks -> also subtract the mean dark I
     if date < pd.to_datetime('2020-08-27').date():
-        I['Values'] = I['Values'] - float(dark.I_dark_mean)
+        I['Values'] = I['Values'] - float(I_dark_mean)
     ###########################################################################
     
     I = I.drop(columns='Data_Type')
